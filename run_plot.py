@@ -20,7 +20,6 @@ if __name__ == "__main__":
     ax.scatter(
         x=df_iris["sepal length (cm)"],
         y=df_iris["sepal width (cm)"],
-        c=df_iris["target"],
     )
     f.tight_layout()
     f.show()
