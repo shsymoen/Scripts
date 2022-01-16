@@ -6,6 +6,8 @@ if __name__ == "__main__":
     import pandas as pd
     from sklearn import datasets
 
+    from plotter import scatter_plot_color
+
     iris = datasets.load_iris()
     df_iris = pd.DataFrame(
         data=np.c_[iris["data"], iris["target"]],
@@ -16,11 +18,10 @@ if __name__ == "__main__":
     print(df_iris.head())
 
     f, ax = plt.subplots()
-
-    ax.scatter(
-        x=df_iris["sepal length (cm)"],
-        y=df_iris["sepal width (cm)"],
+    scatter_plot_color(
+        f, ax, df_iris, "sepal width (cm)", "sepal length (cm)", "target"
     )
+
     f.tight_layout()
     f.show()
 
