@@ -9,28 +9,30 @@ def scatter_plot_color(
     import pandas as pd
     from sklearn import preprocessing
 
-    le = preprocessing.LabelEncoder()
-    colors = le.fit_transform(df[colorcat])
-    n = len(df[colorcat].unique())
-
     x = df[xas]
     y = df[yas]
 
-    sct = ax.scatter(x=x, y=y, c=colors, cmap=plt.cm.get_cmap(colormap, n))
+    if is_object(df[colorcat]):
+        le = preprocessing.LabelEncoder()
+        colors = le.fit_transform(df[colorcat])
+        n = len(df[colorcat].unique())
+        sct = ax.scatter(x=x, y=y, c=colors, cmap=plt.cm.get_cmap(colormap, n))
+        # This function formatter replaces the ticks with target names
+        formatter = plt.FuncFormatter(
+            lambda val, loc: le.inverse_transform([val])[0]
+        )
+        # We must make sure the ticks match our target names
+        cbar = f.colorbar(sct, ticks=colors, format=formatter)
+        # Set the clim so that labels are centered on each block
+        sct.set_clim(-0.5, n - 0.5)
+    else:
+        colors = df[colorcat]
+        sct = ax.scatter(x=x, y=y, c=colors, cmap=colormap)
+        cbar = f.colorbar(sct)
+
     ax.set(
         xlabel=xas, ylabel=yas,
     )
-
-    # This function formatter replaces the ticks with target names
-    formatter = plt.FuncFormatter(
-        lambda val, loc: le.inverse_transform([val])[0]
-    )
-
-    # We must make sure the ticks match our target names
-    cbar = f.colorbar(sct, ticks=colors, format=formatter)
-
-    # Set the clim so that labels are centered on each block
-    sct.set_clim(-0.5, n - 0.5)
 
     return f, ax, sct, cbar
 
@@ -55,3 +57,14 @@ def lin_func_plotter(f, ax, df, xas, yas, add_text=True):
             ha="center",
         )
     return f, ax, func
+
+
+def is_object(array_like):
+    """is_object.
+
+    Parameters
+    ----------
+    array_like :
+        DataFrame
+    """
+    return array_like.dtype.name == "object"
