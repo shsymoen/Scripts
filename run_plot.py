@@ -6,7 +6,11 @@ if __name__ == "__main__":
     import pandas as pd
     from sklearn import datasets
 
-    from plotter import is_object, scatter_plot_color
+    from plotter import (
+        add_intervals_parity_plot,
+        is_object,
+        scatter_plot_color,
+    )
 
     iris = datasets.load_iris()
     df_iris = pd.DataFrame(
@@ -33,6 +37,7 @@ if __name__ == "__main__":
         "sepal length (cm)",
     )
 
+    add_intervals_parity_plot(ax,)
     f.tight_layout()
     f.show()
 
