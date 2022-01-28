@@ -172,6 +172,7 @@ def create_parity_plot(
     parityplot_col_names,
     uom,
     add_interval_lines=True,
+    add_r2_score=True,
 ):
     """Creates a parity plot for a specific
     component for different simulations
@@ -190,6 +191,13 @@ def create_parity_plot(
     for color, marker, parityplot_col_name in zip(
         colors, markers, parityplot_col_names
     ):
+        lbl_legend = parityplot_col_name
+        if add_r2_score:
+            from sklearn.metrics import r2_score
+
+            r2 = r2_score(df[reference_col_name], df[parityplot_col_name])
+            lbl_legend = "{} - $R^2$: {:.2%}".format(lbl_legend, r2)
+
         fc = color if single else "white"
         ax.scatter(
             x=df[reference_col_name],
@@ -198,7 +206,7 @@ def create_parity_plot(
             s=20,
             facecolor=fc,
             edgecolor=color,
-            label=parityplot_col_name,
+            label=lbl_legend,
         )
 
     # Add interval lines
