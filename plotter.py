@@ -163,3 +163,94 @@ def add_intervals_parity_plot(ax,):
             ha="center",
             bbox=bbox_props,
         )
+
+
+def create_parity_plot(
+    ax,
+    df,
+    reference_col_name,
+    parityplot_col_names,
+    uom,
+    add_interval_lines=True,
+):
+    """Creates a parity plot for a specific
+    component for different simulations
+    """
+
+    no = len(parityplot_col_names)
+    colors, markers = colors_markers(no)
+    single = False
+
+    # Check if single comparison or multiple
+    if not isinstance(parityplot_col_names, list):
+        parityplot_col_names = [parityplot_col_names]
+        single = True
+
+    # Iterate over all different comparison columns in the DataFrame
+    for color, marker, parityplot_col_name in zip(
+        colors, markers, parityplot_col_names
+    ):
+        fc = color if single else "white"
+        ax.scatter(
+            x=df[reference_col_name],
+            y=df[parityplot_col_name],
+            marker=marker,
+            s=20,
+            facecolor=fc,
+            edgecolor=color,
+            label=parityplot_col_name,
+        )
+
+    # Add interval lines
+    if add_interval_lines:
+        add_intervals_parity_plot(ax)
+
+    # Set title and labels
+    if not single:
+        ylabel = "{}".format(uom)
+    else:
+        ylabel = "{}, {}".format(parityplot_col_names[0], uom)
+    ax.set(
+        xlabel="{}, {}".format(reference_col_name, uom), ylabel=ylabel,
+    )
+    if not single:
+        handles, labels = ax.get_legend_handles_labels()
+        number = len(parityplot_col_names)
+        ax.legend(
+            handles=handles[:number],
+            labels=labels[:number],
+            loc="best",
+            scatterpoints=1,
+            fontsize=10,
+            frameon=False,
+        )
+
+
+def colors_markers(no):
+    """colors_markers. Provides a list of markers and colors for matplotlib
+    graphs with a length of number 'no'
+
+    Parameters
+    ----------
+    no :
+        int, number of markers and colors required for the figure
+    Returns
+    -------
+    markers :
+        lst, list with markers of size no
+    colors :
+        lst, list with colors of size no
+    """
+
+    markers = ["o", "^", "s", "D", "*", "<", ">", "v", "p", "d", "H", "8", "h"]
+    colors = [
+        "g",
+        "darkblue",
+        "r",
+        "deepskyblue",
+        "darkmagenta",
+        "coral",
+        "indianred",
+    ]
+
+    return colors[:no], markers[:no]

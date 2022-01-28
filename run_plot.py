@@ -8,6 +8,7 @@ if __name__ == "__main__":
 
     from plotter import (
         add_intervals_parity_plot,
+        create_parity_plot,
         is_object,
         scatter_plot_color,
     )
@@ -21,23 +22,51 @@ if __name__ == "__main__":
     df_iris["target"] = df_iris["target"].replace(converter)
     print(df_iris.head())
 
+    # f, ax = plt.subplots()
+    # scatter_plot_color(
+    #     f, ax, df_iris, "sepal width (cm)", "sepal length (cm)", "target"
+    # )
+    # f.show()
+    # input()
+    # f, ax = plt.subplots()
+    # scatter_plot_color(
+    #     f,
+    #     ax,
+    #     df_iris,
+    #     "sepal width (cm)",
+    #     "sepal length (cm)",
+    #     "sepal length (cm)",
+    # )
+
+    # add_intervals_parity_plot(ax,)
+    # f.tight_layout()
+    # f.show()
+
+    # input()
+
     f, ax = plt.subplots()
-    scatter_plot_color(
-        f, ax, df_iris, "sepal width (cm)", "sepal length (cm)", "target"
-    )
-    f.show()
-    input()
-    f, ax = plt.subplots()
-    scatter_plot_color(
-        f,
+    create_parity_plot(
         ax,
         df_iris,
-        "sepal width (cm)",
-        "sepal length (cm)",
-        "sepal length (cm)",
+        reference_col_name="sepal width (cm)",
+        parityplot_col_names="sepal length (cm)",
+        uom="cm",
     )
 
-    add_intervals_parity_plot(ax,)
+    f.tight_layout()
+    f.show()
+
+    input()
+
+    f, ax = plt.subplots()
+    create_parity_plot(
+        ax,
+        df_iris,
+        reference_col_name="sepal width (cm)",
+        parityplot_col_names=["sepal length (cm)", "sepal width (cm)"],
+        uom="cm",
+    )
+
     f.tight_layout()
     f.show()
 
