@@ -25,6 +25,8 @@ def scatter_plot_color(
         cbar = f.colorbar(sct, ticks=colors, format=formatter)
         # Set the clim so that labels are centered on each block
         sct.set_clim(-0.5, n - 0.5)
+    elif is_datetime(df[colorcat]):
+        pass
     else:
         colors = df[colorcat]
         sct = ax.scatter(x=x, y=y, c=colors, cmap=colormap)
@@ -69,6 +71,17 @@ def is_object(array_like):
         DataFrame
     """
     return array_like.dtype.name == "object"
+
+
+def is_datetime(array_like):
+    """is_datetime.
+
+    Parameters
+    ----------
+    array_like :
+        DataFrame
+    """
+    return array_like.dtype.name == "datetime"
 
 
 def xlim_to_01(lowerlimit, upperlimit, percentage):
@@ -262,3 +275,62 @@ def colors_markers(no):
     ]
 
     return colors[:no], markers[:no]
+
+
+def create_PCA_figure(
+    ax, pca_results, expl_variance, colors, add_title=True,
+):
+    """Creates a score plot with the first 2 PC's of the PCA
+    together with the color_encoding as it is given in color_encoding
+
+    Parameters
+    ----------
+    ax : Matplotlib axis object
+    pca_results: 
+    expl_variance : 
+    color_encoding : String
+    ax : Matplotlib axis object
+
+    Returns
+    -------
+    Score plot PC1 and PC2
+    """
+    import pandas as pd
+
+    print("Explained variance:", pd.Series(expl_variance[:5]))
+
+    img = ax.scatter(pca_results[:, 0], pca_results[:, 1], c=colors,)
+
+    ax.set(
+        xlabel="PC 1 ({:.2})".format(expl_variance[0]),
+        ylabel="PC 2 ({:.2})".format(expl_variance[1]),
+    )
+    if add_title:
+        ax.set(title="PCA",)
+    return img
+
+
+def create_tsne_figure(
+    ax, tsne_results, colors, add_title=True,
+):
+    """Creates a t-SNE embedding
+    of the columns that are given in the column names,
+    together with the color_encoding as it is given in color_encoding
+
+    Parameters
+    ----------
+    ax : Matplotlib axis object
+    color_encoding : String
+
+    Returns
+    -------
+    t-SNE embedding
+    """
+    img = ax.scatter(tsne_results[:, 0], tsne_results[:, 1], c=colors)
+
+    if add_title:
+        ax.set(title="t-SNE")
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+
+    return img
