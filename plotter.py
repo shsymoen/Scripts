@@ -26,7 +26,12 @@ def scatter_plot_color(
         # Set the clim so that labels are centered on each block
         sct.set_clim(-0.5, n - 0.5)
     elif is_datetime(df[colorcat]):
-        pass
+        colors = df[colorcat]
+        sct = ax.scatter(x=x, y=y, c=colors, cmap=colormap)
+        cbar = f.colorbar(sct, ax=ax, orientation="vertical")
+        cbar.ax.set_yticklabels(
+            pd.to_datetime(cbar.get_ticks()).strftime(date_format="%b %Y")
+        )
     else:
         colors = df[colorcat]
         sct = ax.scatter(x=x, y=y, c=colors, cmap=colormap)
@@ -81,7 +86,7 @@ def is_datetime(array_like):
     array_like :
         DataFrame
     """
-    return array_like.dtype.name == "datetime"
+    return array_like.dtype.name == "datetime64[ns]"
 
 
 def xlim_to_01(lowerlimit, upperlimit, percentage):
