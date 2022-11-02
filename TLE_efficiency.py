@@ -6,23 +6,11 @@ def cp_gas(feed_type, temperature):
     temperature in degrees C back-regressed from PROII
     """
     if feed_type == "Butane":
-        return (
-            -9.0 * 10 ** (-4) * temperature ** 2
-            + 2.7489 * temperature
-            + 1761.8
-        )
+        return -9.0 * 10 ** (-4) * temperature**2 + 2.7489 * temperature + 1761.8
     elif feed_type == "Naphtha":
-        return (
-            -9.0 * 10 ** (-4) * temperature ** 2
-            + 2.6691 * temperature
-            + 1710.9
-        )
+        return -9.0 * 10 ** (-4) * temperature**2 + 2.6691 * temperature + 1710.9
     elif feed_type == "Ethane":
-        return (
-            -8.763 * 10 ** (-4) * temperature ** 2
-            + 2.7116 * temperature
-            + 2050.0
-        )
+        return -8.763 * 10 ** (-4) * temperature**2 + 2.7116 * temperature + 2050.0
 
 
 def cp_gass(feed_types, temperatures):
@@ -101,17 +89,17 @@ def heat_transferred(feed_type, flow, t_in, t_out):
     #       pd.concat((t_in, t_out), axis=1).mean(axis=1)
     #     )
     #     cp_out = cp_in
-    return flow / 3.6 * (cp_in * t_in - cp_out * t_out) / 10 ** 6
+    return flow / 3.6 * (cp_in * t_in - cp_out * t_out) / 10**6
 
 
 def gas_thermal_cond(feed_type, temperature):
     if feed_type == "Butane":
-        return (2 * 10 ** (-7) * temperature + 7 * 10 ** (-6)) * 10 ** 3
+        return (2 * 10 ** (-7) * temperature + 7 * 10 ** (-6)) * 10**3
     elif feed_type == "Naphtha":
-        return (2 * 10 ** (-7) * temperature + 6 * 10 ** (-6)) * 10 ** 3
+        return (2 * 10 ** (-7) * temperature + 6 * 10 ** (-6)) * 10**3
     elif feed_type == "Ethane":
         return (
-            2.447 * 10 ** (-8) * temperature ** 2
+            2.447 * 10 ** (-8) * temperature**2
             + 1.8693 * 10 ** (-4) * temperature
             + 3.3693 * 10 ** (-2)
         )
@@ -144,12 +132,9 @@ def alpha_i(
     heat_transfer_coeff_adj_spyro,
 ):
     """Fluid heat transfer coefficient"""
-    Nu = Nusselt(
-        feed_types, temperatures, flow, number_of_tubes_TLX, inner_diameter
-    )
+    Nu = Nusselt(feed_types, temperatures, flow, number_of_tubes_TLX, inner_diameter)
     lambda_ = (
-        gass_thermal_cond(feed_types, temperatures)
-        * heat_transfer_coeff_adj_spyro
+        gass_thermal_cond(feed_types, temperatures) * heat_transfer_coeff_adj_spyro
     )
 
     return Nu * lambda_ / inner_diameter
@@ -211,7 +196,7 @@ def Ut_At(feed_types, flow, t_in, t_out, t_wall):
     return (
         heat_transferred(feed_types, flow, t_in, t_out)
         / log_mean(t_in - t_wall, t_out - t_wall)
-        * 10 ** 6
+        * 10**6
     )
 
 
@@ -253,25 +238,19 @@ def TLE_efficiency(
     return UtAt / UcleanAclean * 100
 
 
-def Nusselt(
-    feed_types, temperatures, flow, number_of_tubes_TLX, inner_diameter
-):
-    Re = Reynolds(
-        feed_types, temperatures, flow, number_of_tubes_TLX, inner_diameter
-    )
+def Nusselt(feed_types, temperatures, flow, number_of_tubes_TLX, inner_diameter):
+    Re = Reynolds(feed_types, temperatures, flow, number_of_tubes_TLX, inner_diameter)
     Pr = Prandtl(feed_types, temperatures)
 
     return 0.023 * Re ** (0.8) * Pr ** (0.33)
 
 
-def Reynolds(
-    feed_types, temperatures, flow, number_of_tubes_TLX, inner_diameter
-):
+def Reynolds(feed_types, temperatures, flow, number_of_tubes_TLX, inner_diameter):
     import numpy as np
 
     mu = gass_visc(feed_types, temperatures)
     velocity_density = (
-        flow / 3.6 / number_of_tubes_TLX / (inner_diameter ** 2 * np.pi / 4)
+        flow / 3.6 / number_of_tubes_TLX / (inner_diameter**2 * np.pi / 4)
     )
 
     return velocity_density * inner_diameter / mu
