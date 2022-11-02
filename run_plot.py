@@ -22,27 +22,29 @@ if __name__ == "__main__":
     df_iris["target"] = df_iris["target"].replace(converter)
     print(df_iris.head())
 
-    # f, ax = plt.subplots()
-    # scatter_plot_color(
-    #     f, ax, df_iris, "sepal width (cm)", "sepal length (cm)", "target"
-    # )
-    # f.show()
-    # input()
-    # f, ax = plt.subplots()
-    # scatter_plot_color(
-    #     f,
-    #     ax,
-    #     df_iris,
-    #     "sepal width (cm)",
-    #     "sepal length (cm)",
-    #     "sepal length (cm)",
-    # )
+    f, ax = plt.subplots()
+    scatter_plot_color(
+        f, ax, df_iris, "sepal width (cm)", "sepal length (cm)", "target"
+    )
+    f.show()
+    input()
+    f, ax = plt.subplots()
+    scatter_plot_color(
+        f,
+        ax,
+        df_iris,
+        "sepal width (cm)",
+        "sepal length (cm)",
+        "sepal length (cm)",
+    )
 
-    # add_intervals_parity_plot(ax,)
-    # f.tight_layout()
-    # f.show()
+    add_intervals_parity_plot(
+        ax,
+    )
+    f.tight_layout()
+    f.show()
 
-    # input()
+    input()
 
     f, ax = plt.subplots()
     create_parity_plot(
