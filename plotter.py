@@ -2,7 +2,14 @@
 
 
 def scatter_plot_color(
-    f, ax, df, xas, yas, colorcat, colormap="viridis",
+    f,
+    ax,
+    df,
+    xas,
+    yas,
+    colorcat,
+    markersize=3,
+    colormap="viridis",
 ):
     import matplotlib.pyplot as plt
     import numpy as np
@@ -16,7 +23,9 @@ def scatter_plot_color(
         le = preprocessing.LabelEncoder()
         colors = le.fit_transform(df[colorcat])
         n = len(df[colorcat].unique())
-        sct = ax.scatter(x=x, y=y, c=colors, cmap=plt.cm.get_cmap(colormap, n))
+        sct = ax.scatter(
+            x=x, y=y, c=colors, s=markersize, cmap=plt.cm.get_cmap(colormap, n)
+        )
         # This function formatter replaces the ticks with target names
         formatter = plt.FuncFormatter(
             lambda val, loc: le.inverse_transform([val])[0]
@@ -27,18 +36,19 @@ def scatter_plot_color(
         sct.set_clim(-0.5, n - 0.5)
     elif is_datetime(df[colorcat]):
         colors = df[colorcat]
-        sct = ax.scatter(x=x, y=y, c=colors, cmap=colormap)
+        sct = ax.scatter(x=x, y=y, c=colors, s=markersize, cmap=colormap)
         cbar = f.colorbar(sct, ax=ax, orientation="vertical")
         cbar.ax.set_yticklabels(
             pd.to_datetime(cbar.get_ticks()).strftime(date_format="%b %Y")
         )
     else:
         colors = df[colorcat]
-        sct = ax.scatter(x=x, y=y, c=colors, cmap=colormap)
+        sct = ax.scatter(x=x, y=y, c=colors, s=markersize, cmap=colormap)
         cbar = f.colorbar(sct)
 
     ax.set(
-        xlabel=xas, ylabel=yas,
+        xlabel=xas,
+        ylabel=yas,
     )
     cbar.ax.set_ylabel(colorcat)
 
@@ -90,18 +100,20 @@ def is_datetime(array_like):
 
 
 def xlim_to_01(lowerlimit, upperlimit, percentage):
-    """ Calculates the position for a text element """
+    """Calculates the position for a text element"""
     return lowerlimit + percentage / 100 * (upperlimit - lowerlimit)
 
 
 def xpos_to_ypos(xpos, xp, fp):
-    """ Calculates the linear interpolated value """
+    """Calculates the linear interpolated value"""
     import numpy as np
 
     return np.interp(xpos, xp, fp)
 
 
-def add_intervals_parity_plot(ax,):
+def add_intervals_parity_plot(
+    ax,
+):
     """add_intervals_parity_plot.
 
     Parameters
@@ -237,7 +249,8 @@ def create_parity_plot(
     else:
         ylabel = "{}, {}".format(parityplot_col_names[0], uom)
     ax.set(
-        xlabel="{}, {}".format(reference_col_name, uom), ylabel=ylabel,
+        xlabel="{}, {}".format(reference_col_name, uom),
+        ylabel=ylabel,
     )
     if not single:
         handles, labels = ax.get_legend_handles_labels()
@@ -283,7 +296,14 @@ def colors_markers(no):
 
 
 def create_PCA_figure(
-    ax, pca_results, expl_variance, colors, add_title=True,
+    ax,
+    pca_results,
+    pca_object,
+    colors,
+    add_title=True,
+    pcs=[1, 2],
+    loading=False,
+    loading_labels=None,
 ):
     """Creates a score plot with the first 2 PC's of the PCA
     together with the color_encoding as it is given in color_encoding
@@ -291,8 +311,8 @@ def create_PCA_figure(
     Parameters
     ----------
     ax : Matplotlib axis object
-    pca_results: 
-    expl_variance : 
+    pca_results:
+    expl_variance :
     color_encoding : String
     ax : Matplotlib axis object
 
@@ -302,21 +322,127 @@ def create_PCA_figure(
     """
     import pandas as pd
 
+    expl_variance = pca_object.explained_variance_ratio_
     print("Explained variance:", pd.Series(expl_variance[:5]))
-
-    img = ax.scatter(pca_results[:, 0], pca_results[:, 1], c=colors,)
+    x = pcs[0] - 1
+    y = pcs[1] - 1
+    img = ax.scatter(
+        pca_results[:, x],
+        pca_results[:, y],
+        c=colors,
+    )
 
     ax.set(
-        xlabel="PC 1 ({:.2})".format(expl_variance[0]),
-        ylabel="PC 2 ({:.2})".format(expl_variance[1]),
+        xlabel="PC {} ({:.2f})".format(pcs[0], expl_variance[x]),
+        ylabel="PC {} ({:.2f})".format(pcs[1], expl_variance[y]),
     )
     if add_title:
-        ax.set(title="PCA",)
+        ax.set(
+            title="PCA",
+        )
+
+    if loading:
+        loading_plotter(ax, pca_object, loading_labels)
+
     return img
 
 
+def pca_processor(df, scaler="MinMax"):
+    """pca_processor.
+
+    Parameters
+    ----------
+    df :
+        DataFrame for which the Principal Component analysis will be performed
+    scaler :
+        string/None to indicate the preprocessing done on the DataFrame
+        (default: MinMax)
+    """
+    import pandas as pd
+    from sklearn import preprocessing
+    from sklearn.decomposition import PCA  # Principal component analysis
+
+    # Drop rows that contain infinite or NaN data as PCA cannot process these
+    # datapoints
+    with pd.option_context("mode.use_inf_as_null", True):
+        df_pca = df.dropna(how="any")
+
+    # Perform preprocessing for PCA. Either MinMax or StandardScaler from the
+    # sklearn library
+    if scaler == "MinMax":
+        scaler = preprocessing.MinMaxScaler()
+        # Scale the data according to the selected scaler
+        df_pca_scaled = scaler.fit_transform(df_pca.values)
+    elif scaler == "Standard":
+        scaler = preprocessing.StandardScaler()
+        # Scale the data according to the selected scaler
+        df_pca_scaled = scaler.fit_transform(df_pca.values)
+    elif scaler is None:
+        df_pca_scaled = df_pca
+    else:
+        print("ERROR: No valid scaler selected. Chose: MinMax, or Standard")
+
+    # Perform the Principal Component Analysis
+    pca = PCA()
+    pca_results = pca.fit_transform(df_pca_scaled)
+
+    return pca, pca_results
+
+
+def loading_plotter(ax, pca_object, labels=None):
+    import numpy as np
+    import pandas as pd
+
+    # Make own labels if no names are given as input
+    if labels is None:
+        labels = ["Var" + str(i + 1) for i in range(n)]
+    loading_coeff_all = np.transpose(pca_object.components_[0:2, :])
+    # Create a DataFrame from the loadings
+    df_loadings_all = pd.DataFrame(
+        loading_coeff_all, index=labels, columns=["x", "y"]
+    )
+    # Add the magnitude of the loading vectors to the DataFrame for sorting
+    # and take the 5 most import contributions
+    df_loadings_all["norm"] = [
+        np.linalg.norm(vector) for vector in loading_coeff_all
+    ]
+    df_loading = df_loadings_all.sort_values(by="norm", ascending=False).iloc[
+        :5
+    ]
+    alpha = 0.3
+
+    loading_coeff = df_loading[["x", "y"]].values
+    labels = df_loading.index
+    n = loading_coeff.shape[0]
+    for i in range(n):
+        ax.arrow(
+            0,
+            0,
+            loading_coeff[i, 0],
+            loading_coeff[i, 1],
+            color="r",
+            alpha=0.5,
+        )
+        # these are matplotlib.patch.Patch properties
+        props = dict(boxstyle="round", facecolor="wheat")
+        ax.text(
+            loading_coeff[i, 0] * 1.15,
+            loading_coeff[i, 1] * 1.15,
+            labels[i],
+            color="g",
+            ha="center",
+            va="center",
+            bbox=props,
+        )
+
+    return ax
+
+
 def create_tsne_figure(
-    ax, tsne_results, colors, add_title=True,
+    ax,
+    tsne_results,
+    colors,
+    add_title=True,
 ):
     """Creates a t-SNE embedding
     of the columns that are given in the column names,
