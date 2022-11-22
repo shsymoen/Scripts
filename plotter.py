@@ -111,6 +111,30 @@ def xpos_to_ypos(xpos, xp, fp):
     return np.interp(xpos, xp, fp)
 
 
+def f_save(f, f_name, dpi=300):
+    """Saves a matplotlib figure to a given location
+
+    Parameters
+    ----------
+    f : matplotlib.figure.Figure object
+    f_name : string
+        Name of the figure to be created.
+        The string can include the folder location.
+    dpi : int, optional (default: 300)
+        Dots per inch
+
+    Returns
+    -------
+    None
+    """
+    f.savefig(
+        f_name + ".png",
+        format="png",
+        dpi=dpi,
+    )
+    return None
+
+
 def add_intervals_parity_plot(
     ax,
 ):
