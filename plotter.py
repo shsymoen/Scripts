@@ -10,11 +10,16 @@ def scatter_plot_color(
     colorcat,
     markersize=3,
     colormap="viridis",
+    downsample=True,
 ):
     import matplotlib.pyplot as plt
     import numpy as np
     import pandas as pd
     from sklearn import preprocessing
+
+    if downsample:
+        while len(df[xas]) > 5000:
+            df = df.iloc[::5]
 
     x = df[xas]
     y = df[yas]
