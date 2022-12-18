@@ -494,3 +494,179 @@ def create_tsne_figure(
     ax.axes.get_yaxis().set_visible(False)
 
     return img
+
+
+def create_widgets_interactive(df):
+    import pandas as pd
+
+    # For the widgets in the interactive display
+    from ipywidgets import (
+        BoundedIntText,
+        Box,
+        Button,
+        Dropdown,
+        FloatRangeSlider,
+        HBox,
+        IntSlider,
+        Label,
+        Output,
+        SelectionRangeSlider,
+        Tab,
+        Text,
+        ToggleButton,
+        VBox,
+    )
+
+    # Create all widgets
+    # widget for filtering the DataFrame
+    sliders = {}
+    for col in df.columns:
+        if df[col].dtype == "float":
+            minn = df[col].min()
+            maxx = df[col].max()
+            range_slider = FloatRangeSlider(
+                value=[minn, maxx],
+                min=minn,
+                max=maxx,
+                step=0.1,
+                description=col,
+                readout_format=".1f",
+            )
+            sliders[col] = range_slider
+        elif pd.api.types.is_datetime64_dtype(df[col]):
+            minn = df[col].min()
+            maxx = df[col].max()
+            fmt = "%Y-%m-%d"
+            date_range = pd.date_range(start=minn, end=maxx, freq="D")
+            options = [(item.strftime(fmt), item) for item in date_range]
+            range_slider = SelectionRangeSlider(
+                options=options, index=(0, len(options) - 1)
+            )
+            sliders[col] = range_slider
+
+    # Wich columns to plot
+    xas_widget = Dropdown(
+        options=list(df.columns), description="x-axis", value=df.columns[0]
+    )
+    yas_widget = Dropdown(
+        options=list(df.columns), description="y-axis", value=df.columns[1]
+    )
+    color_widget = Dropdown(
+        options=list(df.columns), description="coloring", value=df.columns[1]
+    )
+
+    plot_button = Button(
+        description="Plot",
+    )
+
+    save_button = Button(
+        description="Save figure",
+    )
+
+    figure_name = Text(
+        value="figure_name", placeholder="Type something", disabled=False
+    )
+
+    grid_button = ToggleButton(value=False, description="Grid", icon="check")
+
+    add_interval_button = ToggleButton(
+        value=False,
+        description="intervals",
+        icon="check",
+    )
+    marker_size_input = BoundedIntText(
+        value=20,
+        min=1,
+        max=50,
+        step=5,
+        description="Marker size",
+        disabled=False,
+    )
+
+    xrange = df[xas_widget.value].max() - df[xas_widget.value].min()
+    yrange = df[yas_widget.value].max() - df[yas_widget.value].min()
+    xlim_min = df[xas_widget.value].min() - 0.1 * xrange
+    xlim_max = df[xas_widget.value].max() + 0.1 * xrange
+    ylim_min = df[yas_widget.value].min() - 0.1 * yrange
+    ylim_max = df[yas_widget.value].max() + 0.1 * yrange
+
+    xlim_widget = FloatRangeSlider(
+        value=[xlim_min, xlim_max],
+        min=xlim_min - 0.9 * xrange,
+        max=xlim_max + 0.9 * xrange,
+        step=0.1,
+        description="x-limit",
+        readout_format=".1f",
+    )
+
+    ylim_widget = FloatRangeSlider(
+        value=[ylim_min, ylim_max],
+        min=ylim_min - 0.9 * yrange,
+        max=ylim_max + 0.9 * yrange,
+        step=0.1,
+        description="y-limit",
+        readout_format=".1f",
+    )
+
+    def on_value_change_xas_widget(change):
+        xrange = df[change["new"]].max() - df[change["new"]].min()
+        xlim_widget.value = (
+            df[change["new"]].min() - 0.1 * xrange,
+            df[change["new"]].max() + 0.1 * xrange,
+        )
+        xlim_widget.min = df[change["new"]].min() - xrange
+        xlim_widget.max = df[change["new"]].max() + xrange
+
+    def on_value_change_yas_widget(change):
+        yrange = df[change["new"]].max() - df[change["new"]].min()
+        ylim_widget.value = (
+            df[change["new"]].min() - 0.1 * yrange,
+            df[change["new"]].max() + 0.1 * yrange,
+        )
+        ylim_widget.min = df[change["new"]].min() - yrange
+        ylim_widget.max = df[change["new"]].max() + yrange
+
+    xas_widget.observe(on_value_change_xas_widget, names="value")
+    yas_widget.observe(on_value_change_yas_widget, names="value")
+
+    # Create the tabs to interact
+    # with the widgets
+    sliderbox = [
+        HBox(children=[Label(sliders[slider].description), sliders[slider]])
+        for slider in sliders
+    ]
+
+    tab2 = VBox(children=sliderbox)
+    tab1 = HBox(
+        children=[
+            VBox(children=[xas_widget, yas_widget, color_widget]),
+            VBox(
+                children=[
+                    HBox(children=[grid_button, add_interval_button]),
+                    marker_size_input,
+                    xlim_widget,
+                    ylim_widget,
+                ]
+            ),
+        ]
+    )
+
+    tab = Tab(children=[tab1, tab2])
+    tab.set_title(0, "plot")
+    tab.set_title(1, "filtering")
+
+    return (
+        sliders,
+        xas_widget,
+        yas_widget,
+        color_widget,
+        plot_button,
+        save_button,
+        figure_name,
+        grid_button,
+        add_interval_button,
+        marker_size_input,
+        xlim_widget,
+        ylim_widget,
+        tab,
+    )
