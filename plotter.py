@@ -504,8 +504,10 @@ def create_widgets_interactive(df):
         BoundedIntText,
         Box,
         Button,
+        Checkbox,
         Dropdown,
         FloatRangeSlider,
+        FloatText,
         HBox,
         IntSlider,
         Label,
@@ -566,13 +568,15 @@ def create_widgets_interactive(df):
     figure_name = Text(
         value="figure_name", placeholder="Type something", disabled=False
     )
+    figure_title = Text(
+        value="figure_title", placeholder="Type something", disabled=False
+    )
 
-    grid_button = ToggleButton(value=False, description="Grid", icon="check")
+    grid_button = Checkbox(value=False, description="Grid")
 
-    add_interval_button = ToggleButton(
+    add_interval_button = Checkbox(
         value=False,
         description="intervals",
-        icon="check",
     )
     marker_size_input = BoundedIntText(
         value=20,
@@ -590,41 +594,46 @@ def create_widgets_interactive(df):
     ylim_min = df[yas_widget.value].min() - 0.1 * yrange
     ylim_max = df[yas_widget.value].max() + 0.1 * yrange
 
-    xlim_widget = FloatRangeSlider(
-        value=[xlim_min, xlim_max],
-        min=xlim_min - 0.9 * xrange,
-        max=xlim_max + 0.9 * xrange,
+    xlim_min_widget = FloatText(
+        value=round(xlim_min, 2),
         step=0.1,
         description="x-limit",
-        readout_format=".1f",
     )
-
-    ylim_widget = FloatRangeSlider(
-        value=[ylim_min, ylim_max],
-        min=ylim_min - 0.9 * yrange,
-        max=ylim_max + 0.9 * yrange,
+    xlim_max_widget = FloatText(
+        value=round(xlim_max, 2),
+        step=0.1,
+        description="- ",
+    )
+    ylim_min_widget = FloatText(
+        value=round(ylim_min, 2),
         step=0.1,
         description="y-limit",
-        readout_format=".1f",
+    )
+    ylim_max_widget = FloatText(
+        value=round(ylim_max, 2),
+        step=0.1,
+        description="- ",
     )
 
     def on_value_change_xas_widget(change):
-        xrange = df[change["new"]].max() - df[change["new"]].min()
-        xlim_widget.value = (
-            df[change["new"]].min() - 0.1 * xrange,
-            df[change["new"]].max() + 0.1 * xrange,
-        )
-        xlim_widget.min = df[change["new"]].min() - xrange
-        xlim_widget.max = df[change["new"]].max() + xrange
+        if df[change["new"]].dtype == "float":
+            xrange = df[change["new"]].max() - df[change["new"]].min()
+            xlim_min_widget.value = (df[change["new"]].min() - 0.1 * xrange,)
+            xlim_max_widget.value = (df[change["new"]].max() + 0.1 * xrange,)
+        # No axes limits can be set (yet) when the selected column is a
+        # datetime object
+        else:
+            pass
 
     def on_value_change_yas_widget(change):
-        yrange = df[change["new"]].max() - df[change["new"]].min()
-        ylim_widget.value = (
-            df[change["new"]].min() - 0.1 * yrange,
-            df[change["new"]].max() + 0.1 * yrange,
-        )
-        ylim_widget.min = df[change["new"]].min() - yrange
-        ylim_widget.max = df[change["new"]].max() + yrange
+        if df[change["new"]].dtype == "float":
+            yrange = df[change["new"]].max() - df[change["new"]].min()
+            ylim_min_widget.value = (df[change["new"]].min() - 0.1 * yrange,)
+            ylim_max_widget.value = (df[change["new"]].max() + 0.1 * yrange,)
+        # No axes limits can be set (yet) when the selected column is a
+        # datetime object
+        else:
+            pass
 
     xas_widget.observe(on_value_change_xas_widget, names="value")
     yas_widget.observe(on_value_change_yas_widget, names="value")
@@ -644,8 +653,8 @@ def create_widgets_interactive(df):
                 children=[
                     HBox(children=[grid_button, add_interval_button]),
                     marker_size_input,
-                    xlim_widget,
-                    ylim_widget,
+                    HBox(children=[xlim_min_widget, xlim_max_widget]),
+                    HBox(children=[ylim_min_widget, ylim_max_widget]),
                 ]
             ),
         ]
@@ -666,7 +675,10 @@ def create_widgets_interactive(df):
         grid_button,
         add_interval_button,
         marker_size_input,
-        xlim_widget,
-        ylim_widget,
+        figure_title,
+        xlim_min_widget,
+        xlim_max_widget,
+        ylim_min_widget,
+        ylim_max_widget,
         tab,
     )
