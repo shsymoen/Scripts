@@ -526,13 +526,14 @@ def create_widgets_interactive(df):
         if df[col].dtype == "float":
             minn = df[col].min()
             maxx = df[col].max()
+            stepsize = abs(maxx - minn) / 1000
             range_slider = FloatRangeSlider(
                 value=[minn, maxx],
                 min=minn,
                 max=maxx,
-                step=0.1,
+                step=stepsize,
                 description=col,
-                readout_format=".1f",
+                readout_format=".2g",
             )
             sliders[col] = range_slider
         elif pd.api.types.is_datetime64_dtype(df[col]):
@@ -587,14 +588,14 @@ def create_widgets_interactive(df):
         disabled=False,
     )
 
-    xrange = df[xas_widget.value].max() - df[xas_widget.value].min()
-    yrange = df[yas_widget.value].max() - df[yas_widget.value].min()
     if df[xas_widget.value].dtype == "float":
+        xrange = df[xas_widget.value].max() - df[xas_widget.value].min()
         xlim_min = round(df[xas_widget.value].min() - 0.1 * xrange, 2)
         xlim_max = round(df[xas_widget.value].max() + 0.1 * xrange, 2)
     else:
         xlim_min, xlim_max = 0, 100
     if df[yas_widget.value].dtype == "float":
+        yrange = df[yas_widget.value].max() - df[yas_widget.value].min()
         ylim_min = round(df[yas_widget.value].min() - 0.1 * yrange, 2)
         ylim_max = round(df[yas_widget.value].max() + 0.1 * yrange, 2)
     else:
