@@ -589,28 +589,34 @@ def create_widgets_interactive(df):
 
     xrange = df[xas_widget.value].max() - df[xas_widget.value].min()
     yrange = df[yas_widget.value].max() - df[yas_widget.value].min()
-    xlim_min = df[xas_widget.value].min() - 0.1 * xrange
-    xlim_max = df[xas_widget.value].max() + 0.1 * xrange
-    ylim_min = df[yas_widget.value].min() - 0.1 * yrange
-    ylim_max = df[yas_widget.value].max() + 0.1 * yrange
+    if df[xas_widget.value].dtype == "float":
+        xlim_min = round(df[xas_widget.value].min() - 0.1 * xrange, 2)
+        xlim_max = round(df[xas_widget.value].max() + 0.1 * xrange, 2)
+    else:
+        xlim_min, xlim_max = 0, 100
+    if df[yas_widget.value].dtype == "float":
+        ylim_min = round(df[yas_widget.value].min() - 0.1 * yrange, 2)
+        ylim_max = round(df[yas_widget.value].max() + 0.1 * yrange, 2)
+    else:
+        ylim_min, ylim_max = 0, 100
 
     xlim_min_widget = FloatText(
-        value=round(xlim_min, 2),
+        value=xlim_min,
         step=0.1,
         description="x-limit",
     )
     xlim_max_widget = FloatText(
-        value=round(xlim_max, 2),
+        value=xlim_max,
         step=0.1,
         description="- ",
     )
     ylim_min_widget = FloatText(
-        value=round(ylim_min, 2),
+        value=ylim_min,
         step=0.1,
         description="y-limit",
     )
     ylim_max_widget = FloatText(
-        value=round(ylim_max, 2),
+        value=ylim_max,
         step=0.1,
         description="- ",
     )
@@ -618,8 +624,12 @@ def create_widgets_interactive(df):
     def on_value_change_xas_widget(change):
         if df[change["new"]].dtype == "float":
             xrange = df[change["new"]].max() - df[change["new"]].min()
-            xlim_min_widget.value = (df[change["new"]].min() - 0.1 * xrange,)
-            xlim_max_widget.value = (df[change["new"]].max() + 0.1 * xrange,)
+            xlim_min_widget.value = round(
+                df[change["new"]].min() - 0.1 * xrange, 2
+            )
+            xlim_max_widget.value = round(
+                df[change["new"]].max() + 0.1 * xrange, 2
+            )
         # No axes limits can be set (yet) when the selected column is a
         # datetime object
         else:
@@ -628,8 +638,12 @@ def create_widgets_interactive(df):
     def on_value_change_yas_widget(change):
         if df[change["new"]].dtype == "float":
             yrange = df[change["new"]].max() - df[change["new"]].min()
-            ylim_min_widget.value = (df[change["new"]].min() - 0.1 * yrange,)
-            ylim_max_widget.value = (df[change["new"]].max() + 0.1 * yrange,)
+            ylim_min_widget.value = round(
+                df[change["new"]].min() - 0.1 * yrange, 2
+            )
+            ylim_max_widget.value = round(
+                df[change["new"]].max() + 0.1 * yrange, 2
+            )
         # No axes limits can be set (yet) when the selected column is a
         # datetime object
         else:
