@@ -325,10 +325,14 @@ def colors_markers(no):
 
 
 def create_PCA_figure(
+    f,
     ax,
-    pca_results,
     pca_object,
-    colors,
+    df,
+    colorcat,
+    markersize=3,
+    colormap="viridis",
+    downsample=True,
     add_title=True,
     pcs=[1, 2],
     loading=False,
@@ -353,12 +357,24 @@ def create_PCA_figure(
 
     expl_variance = pca_object.explained_variance_ratio_
     print("Explained variance:", pd.Series(expl_variance[:5]))
-    x = pcs[0] - 1
-    y = pcs[1] - 1
-    img = ax.scatter(
-        pca_results[:, x],
-        pca_results[:, y],
-        c=colors,
+    try:
+        xas = df.loc[:, df.columns.str.contains("PC {}".format(pcs[0]))]
+    except:
+        print("Principal component {} not found in DataFrame".format(pcs[0]))
+    try:
+        yas = df.loc[:, df.columns.str.contains("PC {}".format(pcs[1]))]
+    except:
+        print("Principal component {} not found in DataFrame".format(pcs[1]))
+    scatter_plot_color(
+        f,
+        ax,
+        df,
+        xas,
+        yas,
+        colorcat,
+        markersize=3,
+        colormap="viridis",
+        downsample=True,
     )
 
     ax.set(
@@ -386,6 +402,14 @@ def pca_processor(df, scaler="MinMax"):
     scaler :
         string/None to indicate the preprocessing done on the DataFrame
         (default: MinMax)
+
+    Returns
+    -------
+    pca : PCA sklearn object
+    pca_results : data transformed in PCs
+    df_and_pca : DataFrame
+        original DataFrame with the PCs added to it
+
     """
     import pandas as pd
     from sklearn import preprocessing
@@ -395,6 +419,9 @@ def pca_processor(df, scaler="MinMax"):
     # datapoints
     with pd.option_context("mode.use_inf_as_null", True):
         df_pca = df.dropna(how="any")
+
+    # Add preprocessing for categorical data
+    ##### still to be added #####
 
     # Perform preprocessing for PCA. Either MinMax or StandardScaler from the
     # sklearn library
@@ -409,13 +436,24 @@ def pca_processor(df, scaler="MinMax"):
     elif scaler is None:
         df_pca_scaled = df_pca
     else:
-        print("ERROR: No valid scaler selected. Chose: MinMax, or Standard")
+        print(
+            "ERROR: No valid scaler selected. Chose: MinMax, Standard or None"
+        )
 
     # Perform the Principal Component Analysis
     pca = PCA()
     pca_results = pca.fit_transform(df_pca_scaled)
+    pc_col_names = [
+        "PC {} ({:.2%})".format(i + 1, var)
+        for i, var in enumerate(pca.explained_variance_ratio_)
+    ]
+    pca_results_df = pd.DataFrame(
+        data=pca_results,
+        columns=pc_col_names,
+    )
+    df_and_pca = pd.concat([df, pca_results_df], axis=1)
 
-    return pca, pca_results
+    return pca, pca_results, df_and_pca
 
 
 def loading_plotter(ax, pca_object, labels=None):
@@ -438,11 +476,11 @@ def loading_plotter(ax, pca_object, labels=None):
     df_loading = df_loadings_all.sort_values(by="norm", ascending=False).iloc[
         :5
     ]
-    alpha = 0.3
 
     loading_coeff = df_loading[["x", "y"]].values
     labels = df_loading.index
     n = loading_coeff.shape[0]
+    alpha = 0.3
     for i in range(n):
         ax.arrow(
             0,
@@ -450,7 +488,7 @@ def loading_plotter(ax, pca_object, labels=None):
             loading_coeff[i, 0],
             loading_coeff[i, 1],
             color="r",
-            alpha=0.5,
+            alpha=alpha,
         )
         # these are matplotlib.patch.Patch properties
         props = dict(boxstyle="round", facecolor="wheat")
