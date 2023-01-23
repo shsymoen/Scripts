@@ -52,8 +52,7 @@ def scatter_plot_color(
         cbar = f.colorbar(sct)
 
     ax.set(
-        xlabel=xas,
-        ylabel=yas,
+        xlabel=xas, ylabel=yas,
     )
     cbar.ax.set_ylabel(colorcat)
 
@@ -133,16 +132,12 @@ def f_save(f, f_name, dpi=300):
     None
     """
     f.savefig(
-        f_name + ".png",
-        format="png",
-        dpi=dpi,
+        f_name + ".png", format="png", dpi=dpi,
     )
     return None
 
 
-def add_intervals_parity_plot(
-    ax,
-):
+def add_intervals_parity_plot(ax,):
     """add_intervals_parity_plot.
 
     Parameters
@@ -278,8 +273,7 @@ def create_parity_plot(
     else:
         ylabel = "{}, {}".format(parityplot_col_names[0], uom)
     ax.set(
-        xlabel="{}, {}".format(reference_col_name, uom),
-        ylabel=ylabel,
+        xlabel="{}, {}".format(reference_col_name, uom), ylabel=ylabel,
     )
     if not single:
         handles, labels = ax.get_legend_handles_labels()
@@ -356,7 +350,8 @@ def create_PCA_figure(
     import pandas as pd
 
     expl_variance = pca_object.explained_variance_ratio_
-    print("Explained variance:", pd.Series(expl_variance[:5]))
+    print("Explained variance:\n")
+    print(pd.Series(expl_variance[:5]) * 100)
     try:
         xas = df.loc[:, df.columns.str.contains("PC {}".format(pcs[0]))]
     except:
@@ -378,85 +373,22 @@ def create_PCA_figure(
     )
 
     ax.set(
-        xlabel="PC {} ({:.2f})".format(pcs[0], expl_variance[x]),
-        ylabel="PC {} ({:.2f})".format(pcs[1], expl_variance[y]),
+        xlabel="PC {} ({:.2f})".format(pcs[0], expl_variance[pcs[0] - 1]),
+        ylabel="PC {} ({:.2f})".format(pcs[1], expl_variance[pcs[1] - 1]),
     )
     if add_title:
-        ax.set(
-            title="PCA",
-        )
+        ax.set(title="PCA",)
 
     if loading:
         loading_plotter(ax, pca_object, loading_labels)
 
-    return img
-
-
-def pca_processor(df, scaler="MinMax"):
-    """pca_processor.
-
-    Parameters
-    ----------
-    df :
-        DataFrame for which the Principal Component analysis will be performed
-    scaler :
-        string/None to indicate the preprocessing done on the DataFrame
-        (default: MinMax)
-
-    Returns
-    -------
-    pca : PCA sklearn object
-    pca_results : data transformed in PCs
-    df_and_pca : DataFrame
-        original DataFrame with the PCs added to it
-
-    """
-    import pandas as pd
-    from sklearn import preprocessing
-    from sklearn.decomposition import PCA  # Principal component analysis
-
-    # Drop rows that contain infinite or NaN data as PCA cannot process these
-    # datapoints
-    with pd.option_context("mode.use_inf_as_null", True):
-        df_pca = df.dropna(how="any")
-
-    # Add preprocessing for categorical data
-    ##### still to be added #####
-
-    # Perform preprocessing for PCA. Either MinMax or StandardScaler from the
-    # sklearn library
-    if scaler == "MinMax":
-        scaler = preprocessing.MinMaxScaler()
-        # Scale the data according to the selected scaler
-        df_pca_scaled = scaler.fit_transform(df_pca.values)
-    elif scaler == "Standard":
-        scaler = preprocessing.StandardScaler()
-        # Scale the data according to the selected scaler
-        df_pca_scaled = scaler.fit_transform(df_pca.values)
-    elif scaler is None:
-        df_pca_scaled = df_pca
-    else:
-        print(
-            "ERROR: No valid scaler selected. Chose: MinMax, Standard or None"
-        )
-
-    # Perform the Principal Component Analysis
-    pca = PCA()
-    pca_results = pca.fit_transform(df_pca_scaled)
-    pc_col_names = [
-        "PC {} ({:.2%})".format(i + 1, var)
-        for i, var in enumerate(pca.explained_variance_ratio_)
-    ]
-    pca_results_df = pd.DataFrame(
-        data=pca_results,
-        columns=pc_col_names,
-    )
-    df_and_pca = pd.concat([df, pca_results_df], axis=1)
-
-    return pca, pca_results, df_and_pca
+    return ax
 
 
 def loading_plotter(ax, pca_object, labels=None):
+
+    ### DEZE WERKT NIET MEER ###
+    ### nog te fixen         ###
     import numpy as np
     import pandas as pd
 
@@ -506,10 +438,7 @@ def loading_plotter(ax, pca_object, labels=None):
 
 
 def create_tsne_figure(
-    ax,
-    tsne_results,
-    colors,
-    add_title=True,
+    ax, tsne_results, colors, add_title=True,
 ):
     """Creates a t-SNE embedding
     of the columns that are given in the column names,
@@ -596,13 +525,9 @@ def create_widgets_interactive(df):
         options=list(df.columns), description="coloring", value=df.columns[1]
     )
 
-    plot_button = Button(
-        description="Plot",
-    )
+    plot_button = Button(description="Plot",)
 
-    save_button = Button(
-        description="Save figure",
-    )
+    save_button = Button(description="Save figure",)
 
     figure_name = Text(
         value="figure_name", placeholder="Type something", disabled=False
@@ -613,10 +538,7 @@ def create_widgets_interactive(df):
 
     grid_button = Checkbox(value=False, description="Grid")
 
-    add_interval_button = Checkbox(
-        value=False,
-        description="intervals",
-    )
+    add_interval_button = Checkbox(value=False, description="intervals",)
     marker_size_input = BoundedIntText(
         value=20,
         min=1,
@@ -640,25 +562,13 @@ def create_widgets_interactive(df):
         ylim_min, ylim_max = 0, 100
 
     xlim_min_widget = FloatText(
-        value=xlim_min,
-        step=0.1,
-        description="x-limit",
+        value=xlim_min, step=0.1, description="x-limit",
     )
-    xlim_max_widget = FloatText(
-        value=xlim_max,
-        step=0.1,
-        description="- ",
-    )
+    xlim_max_widget = FloatText(value=xlim_max, step=0.1, description="- ",)
     ylim_min_widget = FloatText(
-        value=ylim_min,
-        step=0.1,
-        description="y-limit",
+        value=ylim_min, step=0.1, description="y-limit",
     )
-    ylim_max_widget = FloatText(
-        value=ylim_max,
-        step=0.1,
-        description="- ",
-    )
+    ylim_max_widget = FloatText(value=ylim_max, step=0.1, description="- ",)
 
     def on_value_change_xas_widget(change):
         if df[change["new"]].dtype == "float":

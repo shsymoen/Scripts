@@ -11,16 +11,16 @@ if __name__ == "__main__":
         create_parity_plot,
         create_PCA_figure,
         is_object,
-        pca_processor,
         scatter_plot_color,
     )
+    from processor import pca_processor
 
     iris = datasets.load_iris()
     df_iris = pd.DataFrame(
         data=np.c_[iris["data"], iris["target"]],
         columns=iris["feature_names"] + ["target"],
     )
-    converter = {0: "setosa", 1: "versicolor", 2: "virginica"}
+    converter = {0: "setosa", 1: "y", 2: "virginica"}
     #     df_iris["target"] = df_iris["target"].replace(converter)
     #     print(df_iris.head())
     #
@@ -77,7 +77,9 @@ if __name__ == "__main__":
     #     input()
 
     f, ax = plt.subplots()
-    pca, pca_results, df_pca = pca_processor(df_iris)
+    pca, pca_results, df_pca = pca_processor(
+        df_iris, df_iris[["sepal length (cm)", "sepal width (cm)"]]
+    )
     print(df_pca.columns)
 
     #     scatter_plot_color(
