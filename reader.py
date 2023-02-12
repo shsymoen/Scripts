@@ -40,7 +40,7 @@ def read_pi_data_excel(excel_file_name):
 
         if resize or time:
             raise Exception(
-                "The Excel file is not fully loaded with PI data,"
+                "The Excel file is not fully loaded with PI data, "
                 "please try again"
             )
 
