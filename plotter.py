@@ -18,6 +18,9 @@ def scatter_plot_color(
     from sklearn import preprocessing
 
     if downsample:
+        print(xas)
+        print(df[xas])
+        print(pd.Series(len(df[xas])))
         while len(df[xas]) > 5000:
             df = df.iloc[::5]
 
@@ -350,7 +353,7 @@ def create_PCA_figure(
     import pandas as pd
 
     expl_variance = pca_object.explained_variance_ratio_
-    print("Explained variance:\n")
+    print("Explained variance (%):\n")
     print(pd.Series(expl_variance[:5]) * 100)
     try:
         xas = df.loc[:, df.columns.str.contains("PC {}".format(pcs[0]))]
@@ -386,11 +389,12 @@ def create_PCA_figure(
 
 
 def loading_plotter(ax, pca_object, labels=None):
+    import numpy as np
+    import pandas as pd
 
     ### DEZE WERKT NIET MEER ###
     ### nog te fixen         ###
-    import numpy as np
-    import pandas as pd
+    raise Exception("Function incomplete")
 
     # Make own labels if no names are given as input
     if labels is None:
@@ -601,14 +605,29 @@ def create_widgets_interactive(df):
     xas_widget.observe(on_value_change_xas_widget, names="value")
     yas_widget.observe(on_value_change_yas_widget, names="value")
 
-    # Create the tabs to interact
+    # Create the tabs to filter
     # with the widgets
     sliderbox = [
         HBox(children=[Label(sliders[slider].description), sliders[slider]])
         for slider in sliders
     ]
 
-    tab2 = VBox(children=sliderbox)
+    # widgets for the PCA tab
+    #########################
+    plot_PCA_12_button = Button(description="Plot PCA 1-2",)
+    plot_PCA_23_button = Button(description="Plot PCA 2-3",)
+
+    # Create all widgets for PCA column selection
+    pca_checkboxes = {}
+    for col in df.columns:
+        pca_checkboxes[col] = Checkbox(value=True, description=col)
+
+    # Create the checkbox widgets to select the columns for the PCA
+    pca_checkbox_widgets = [
+        pca_checkboxes[pca_checkbox] for pca_checkbox in pca_checkboxes
+    ]
+
+    # tab 1 creation
     tab1 = HBox(
         children=[
             VBox(children=[xas_widget, yas_widget, color_widget]),
@@ -623,16 +642,30 @@ def create_widgets_interactive(df):
         ]
     )
 
-    tab = Tab(children=[tab1, tab2])
+    # tab 2 creation
+    tab2 = VBox(children=sliderbox)
+
+    # tab 3 creation
+    pca_checkbox_widgets.append(
+        HBox(children=[plot_PCA_12_button, plot_PCA_23_button]),
+    )
+    tab3 = VBox(pca_checkbox_widgets)
+
+    # combining all tabs
+    tab = Tab(children=[tab1, tab2, tab3])
     tab.set_title(0, "plot")
     tab.set_title(1, "filtering")
+    tab.set_title(2, "PCA")
 
     return (
         sliders,
+        pca_checkboxes,
         xas_widget,
         yas_widget,
         color_widget,
         plot_button,
+        plot_PCA_12_button,
+        plot_PCA_23_button,
         save_button,
         figure_name,
         grid_button,

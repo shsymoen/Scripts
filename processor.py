@@ -78,3 +78,23 @@ def pca_processor(df_from_which_pca, df_to_add_pca, scaler="MinMax"):
     df_and_pca = pd.concat([df_to_add_pca, pca_results_df], axis=1)
 
     return pca, pca_results, df_and_pca
+
+
+def filter_df_based_on_slider(df, sliders):
+    """ Create a new DataFrame with filter columns based on values from a
+    slider
+    """
+
+    ### TO ADD ###
+    # verify that the df columns have the same length as the sliders
+    df_copy = df.copy()
+
+    for col in sliders:
+        minn = sliders[col].value[0]
+        maxx = sliders[col].value[1]
+        filter_upper = ~(df_copy[col].lt(minn))
+        filter_downer = ~(df_copy[col].gt(maxx))
+        df_copy = df_copy[filter_upper]
+        df_copy = df_copy[filter_downer]
+
+    return df_copy
