@@ -20,7 +20,7 @@ if __name__ == "__main__":
         data=np.c_[iris["data"], iris["target"]],
         columns=iris["feature_names"] + ["target"],
     )
-    converter = {0: "setosa", 1: "y", 2: "virginica"}
+    converter = {0: "setosa", 1: "versicolor", 2: "virginica"}
     #     df_iris["target"] = df_iris["target"].replace(converter)
     #     print(df_iris.head())
     #

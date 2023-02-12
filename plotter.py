@@ -18,25 +18,22 @@ def scatter_plot_color(
     from sklearn import preprocessing
 
     if downsample:
-        print(xas)
-        print(df[xas])
-        print(pd.Series(len(df[xas])))
-        while len(df[xas]) > 5000:
+        while len(df.index) > 5000:
             df = df.iloc[::5]
 
     x = df[xas]
     y = df[yas]
 
     if is_object(df[colorcat]):
-        le = preprocessing.LabelEncoder()
-        colors = le.fit_transform(df[colorcat])
+        lblenc = preprocessing.LabelEncoder()
+        colors = lblenc.fit_transform(df[colorcat])
         n = len(df[colorcat].unique())
         sct = ax.scatter(
             x=x, y=y, c=colors, s=markersize, cmap=plt.cm.get_cmap(colormap, n)
         )
         # This function formatter replaces the ticks with target names
         formatter = plt.FuncFormatter(
-            lambda val, loc: le.inverse_transform([val])[0]
+            lambda val, loc: lblenc.inverse_transform([val])[0]
         )
         # We must make sure the ticks match our target names
         cbar = f.colorbar(sct, ticks=colors, format=formatter)
@@ -356,13 +353,14 @@ def create_PCA_figure(
     print("Explained variance (%):\n")
     print(pd.Series(expl_variance[:5]) * 100)
     try:
-        xas = df.loc[:, df.columns.str.contains("PC {}".format(pcs[0]))]
+        xas = df.columns[df.columns.str.contains("PC {}".format(pcs[0]))]
     except:
         print("Principal component {} not found in DataFrame".format(pcs[0]))
     try:
-        yas = df.loc[:, df.columns.str.contains("PC {}".format(pcs[1]))]
+        yas = df.columns[df.columns.str.contains("PC {}".format(pcs[1]))]
     except:
         print("Principal component {} not found in DataFrame".format(pcs[1]))
+
     scatter_plot_color(
         f,
         ax,
@@ -376,8 +374,8 @@ def create_PCA_figure(
     )
 
     ax.set(
-        xlabel="PC {} ({:.2f})".format(pcs[0], expl_variance[pcs[0] - 1]),
-        ylabel="PC {} ({:.2f})".format(pcs[1], expl_variance[pcs[1] - 1]),
+        xlabel="PC {} ({:.2%})".format(pcs[0], expl_variance[pcs[0] - 1]),
+        ylabel="PC {} ({:.2%})".format(pcs[1], expl_variance[pcs[1] - 1]),
     )
     if add_title:
         ax.set(title="PCA",)
