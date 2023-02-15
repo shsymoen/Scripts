@@ -52,7 +52,8 @@ def scatter_plot_color(
         cbar = f.colorbar(sct)
 
     ax.set(
-        xlabel=xas, ylabel=yas,
+        xlabel=xas,
+        ylabel=yas,
     )
     cbar.ax.set_ylabel(colorcat)
 
@@ -132,12 +133,16 @@ def f_save(f, f_name, dpi=300):
     None
     """
     f.savefig(
-        f_name + ".png", format="png", dpi=dpi,
+        f_name + ".png",
+        format="png",
+        dpi=dpi,
     )
     return None
 
 
-def add_intervals_parity_plot(ax,):
+def add_intervals_parity_plot(
+    ax,
+):
     """add_intervals_parity_plot.
 
     Parameters
@@ -273,7 +278,8 @@ def create_parity_plot(
     else:
         ylabel = "{}, {}".format(parityplot_col_names[0], uom)
     ax.set(
-        xlabel="{}, {}".format(reference_col_name, uom), ylabel=ylabel,
+        xlabel="{}, {}".format(reference_col_name, uom),
+        ylabel=ylabel,
     )
     if not single:
         handles, labels = ax.get_legend_handles_labels()
@@ -353,11 +359,11 @@ def create_PCA_figure(
     print("Explained variance (%):\n")
     print(pd.Series(expl_variance[:5]) * 100)
     try:
-        xas = df.columns[df.columns.str.contains("PC {}".format(pcs[0]))]
+        xas = df.columns[df.columns.str.contains("PC {} ".format(pcs[0]))]
     except:
         print("Principal component {} not found in DataFrame".format(pcs[0]))
     try:
-        yas = df.columns[df.columns.str.contains("PC {}".format(pcs[1]))]
+        yas = df.columns[df.columns.str.contains("PC {} ".format(pcs[1]))]
     except:
         print("Principal component {} not found in DataFrame".format(pcs[1]))
 
@@ -378,7 +384,9 @@ def create_PCA_figure(
         ylabel="PC {} ({:.2%})".format(pcs[1], expl_variance[pcs[1] - 1]),
     )
     if add_title:
-        ax.set(title="PCA",)
+        ax.set(
+            title="PCA",
+        )
 
     if loading:
         loading_plotter(ax, pca_object, loading_labels)
@@ -440,7 +448,10 @@ def loading_plotter(ax, pca_object, labels=None):
 
 
 def create_tsne_figure(
-    ax, tsne_results, colors, add_title=True,
+    ax,
+    tsne_results,
+    colors,
+    add_title=True,
 ):
     """Creates a t-SNE embedding
     of the columns that are given in the column names,
@@ -527,9 +538,13 @@ def create_widgets_interactive(df):
         options=list(df.columns), description="coloring", value=df.columns[1]
     )
 
-    plot_button = Button(description="Plot",)
+    plot_button = Button(
+        description="Plot",
+    )
 
-    save_button = Button(description="Save figure",)
+    save_button = Button(
+        description="Save figure",
+    )
 
     figure_name = Text(
         value="figure_name", placeholder="Type something", disabled=False
@@ -540,7 +555,10 @@ def create_widgets_interactive(df):
 
     grid_button = Checkbox(value=False, description="Grid")
 
-    add_interval_button = Checkbox(value=False, description="intervals",)
+    add_interval_button = Checkbox(
+        value=False,
+        description="intervals",
+    )
     marker_size_input = BoundedIntText(
         value=20,
         min=1,
@@ -564,13 +582,25 @@ def create_widgets_interactive(df):
         ylim_min, ylim_max = 0, 100
 
     xlim_min_widget = FloatText(
-        value=xlim_min, step=0.1, description="x-limit",
+        value=xlim_min,
+        step=0.1,
+        description="x-limit",
     )
-    xlim_max_widget = FloatText(value=xlim_max, step=0.1, description="- ",)
+    xlim_max_widget = FloatText(
+        value=xlim_max,
+        step=0.1,
+        description="- ",
+    )
     ylim_min_widget = FloatText(
-        value=ylim_min, step=0.1, description="y-limit",
+        value=ylim_min,
+        step=0.1,
+        description="y-limit",
     )
-    ylim_max_widget = FloatText(value=ylim_max, step=0.1, description="- ",)
+    ylim_max_widget = FloatText(
+        value=ylim_max,
+        step=0.1,
+        description="- ",
+    )
 
     def on_value_change_xas_widget(change):
         if df[change["new"]].dtype == "float":
@@ -612,8 +642,12 @@ def create_widgets_interactive(df):
 
     # widgets for the PCA tab
     #########################
-    plot_PCA_12_button = Button(description="Plot PCA 1-2",)
-    plot_PCA_23_button = Button(description="Plot PCA 2-3",)
+    plot_PCA_12_button = Button(
+        description="Plot PCA 1-2",
+    )
+    plot_PCA_23_button = Button(
+        description="Plot PCA 2-3",
+    )
 
     # Create all widgets for PCA column selection
     pca_checkboxes = {}

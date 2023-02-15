@@ -9,7 +9,7 @@ def pca_processor(df_from_which_pca, df_to_add_pca, scaler="MinMax"):
     df_from_which_pca :
         DataFrame for which the Principal Component analysis will be performed
     df_to_add_pca :
-        DataFrame on which the Principal Component analysis results are added 
+        DataFrame on which the Principal Component analysis results are added
         Note that df_from_which_pca and df_to_add_pca need to have the same
         length
     scaler :
@@ -39,6 +39,9 @@ def pca_processor(df_from_which_pca, df_to_add_pca, scaler="MinMax"):
     df_from_which_pca = df_from_which_pca.reset_index(drop=True)
     df_to_add_pca = df_to_add_pca.reset_index(drop=True)
 
+    # fill cells that contain infinite or NaN data with the mean as PCA cannot
+    # process these datapoints
+    df_from_which_pca = df_from_which_pca.fillna(df_from_which_pca.mean())
     # Drop rows that contain infinite or NaN data as PCA cannot process these
     # datapoints
     with pd.option_context("mode.use_inf_as_null", True):
@@ -74,14 +77,17 @@ def pca_processor(df_from_which_pca, df_to_add_pca, scaler="MinMax"):
         "PC {} ({:.2%})".format(i + 1, var)
         for i, var in enumerate(pca.explained_variance_ratio_)
     ]
-    pca_results_df = pd.DataFrame(data=pca_results, columns=pc_col_names,)
+    pca_results_df = pd.DataFrame(
+        data=pca_results,
+        columns=pc_col_names,
+    )
     df_and_pca = pd.concat([df_to_add_pca, pca_results_df], axis=1)
 
     return pca, pca_results, df_and_pca
 
 
 def filter_df_based_on_slider(df, sliders):
-    """ Create a new DataFrame with filter columns based on values from a
+    """Create a new DataFrame with filter columns based on values from a
     slider
     """
 
