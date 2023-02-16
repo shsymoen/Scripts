@@ -27,6 +27,7 @@ def read_pi_data_excel(excel_file_name):
             "Scan Off",
             "Bad",
             "Pt Created",
+            "Error",
         ],
         parse_dates=True,  # Read the dates correctly
         thousands=".",  # Decimal is a dot
