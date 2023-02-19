@@ -374,7 +374,7 @@ def create_PCA_figure(
         xas,
         yas,
         colorcat,
-        markersize=3,
+        markersize=markersize,
         colormap="viridis",
         downsample=True,
     )
@@ -652,7 +652,8 @@ def create_widgets_interactive(df):
     # Create all widgets for PCA column selection
     pca_checkboxes = {}
     for col in df.columns:
-        pca_checkboxes[col] = Checkbox(value=True, description=col)
+        if not is_datetime(df[col]):
+            pca_checkboxes[col] = Checkbox(value=True, description=col)
 
     # Create the checkbox widgets to select the columns for the PCA
     pca_checkbox_widgets = [

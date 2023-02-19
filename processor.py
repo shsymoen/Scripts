@@ -49,6 +49,8 @@ def pca_processor(df_from_which_pca, df_to_add_pca, scaler="MinMax"):
     # Make sure that the two DataFrames stay the same length even if some
     # infinite or NaN data is dropped in previous line of code
     df_to_add_pca = df_to_add_pca.loc[df_from_which_pca.index]
+    # Add average values for the empty cells
+    df_to_add_pca = df_to_add_pca.fillna(df_to_add_pca.mean())
 
     # Add preprocessing for categorical data
     ### still to be added ###
