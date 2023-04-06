@@ -26,10 +26,24 @@ def read_pi_data_excel(excel_file_name):
             "Bad Input",
             "Scan Off",
             "Bad",
+            "Pt Created",
+            "Error",
         ],
         parse_dates=True,  # Read the dates correctly
         thousands=".",  # Decimal is a dot
     )
+
+    # Check if the DataFrame is loaded fully by the PI Osisoft excel plugin
+    # if not fully loaded abort the code for reading the DataFrame from Excel
+    for col in df.columns:
+        resize = "Resize to show all values" in df[col].values
+        time = "The time is invalid." in df[col].values
+
+        if resize or time:
+            raise Exception(
+                "The Excel file is not fully loaded with PI data, "
+                "please try again"
+            )
 
     # join the units of measure and description of the Pi-tag into 1 column
     # name (before this command the header was a multi-index table)

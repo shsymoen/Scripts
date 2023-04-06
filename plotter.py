@@ -18,22 +18,22 @@ def scatter_plot_color(
     from sklearn import preprocessing
 
     if downsample:
-        while len(df[xas]) > 5000:
+        while len(df.index) > 5000:
             df = df.iloc[::5]
 
     x = df[xas]
     y = df[yas]
 
     if is_object(df[colorcat]):
-        le = preprocessing.LabelEncoder()
-        colors = le.fit_transform(df[colorcat])
+        lblenc = preprocessing.LabelEncoder()
+        colors = lblenc.fit_transform(df[colorcat])
         n = len(df[colorcat].unique())
         sct = ax.scatter(
             x=x, y=y, c=colors, s=markersize, cmap=plt.cm.get_cmap(colormap, n)
         )
         # This function formatter replaces the ticks with target names
         formatter = plt.FuncFormatter(
-            lambda val, loc: le.inverse_transform([val])[0]
+            lambda val, loc: lblenc.inverse_transform([val])[0]
         )
         # We must make sure the ticks match our target names
         cbar = f.colorbar(sct, ticks=colors, format=formatter)
@@ -325,10 +325,14 @@ def colors_markers(no):
 
 
 def create_PCA_figure(
+    f,
     ax,
-    pca_results,
     pca_object,
-    colors,
+    df,
+    colorcat,
+    markersize=3,
+    colormap="viridis",
+    downsample=True,
     add_title=True,
     pcs=[1, 2],
     loading=False,
@@ -352,18 +356,32 @@ def create_PCA_figure(
     import pandas as pd
 
     expl_variance = pca_object.explained_variance_ratio_
-    print("Explained variance:", pd.Series(expl_variance[:5]))
-    x = pcs[0] - 1
-    y = pcs[1] - 1
-    img = ax.scatter(
-        pca_results[:, x],
-        pca_results[:, y],
-        c=colors,
+    print("Explained variance (%):\n")
+    print(pd.Series(expl_variance[:5]) * 100)
+    try:
+        xas = df.columns[df.columns.str.contains("PC {} ".format(pcs[0]))]
+    except:
+        print("Principal component {} not found in DataFrame".format(pcs[0]))
+    try:
+        yas = df.columns[df.columns.str.contains("PC {} ".format(pcs[1]))]
+    except:
+        print("Principal component {} not found in DataFrame".format(pcs[1]))
+
+    scatter_plot_color(
+        f,
+        ax,
+        df,
+        xas,
+        yas,
+        colorcat,
+        markersize=markersize,
+        colormap="viridis",
+        downsample=True,
     )
 
     ax.set(
-        xlabel="PC {} ({:.2f})".format(pcs[0], expl_variance[x]),
-        ylabel="PC {} ({:.2f})".format(pcs[1], expl_variance[y]),
+        xlabel="PC {} ({:.2%})".format(pcs[0], expl_variance[pcs[0] - 1]),
+        ylabel="PC {} ({:.2%})".format(pcs[1], expl_variance[pcs[1] - 1]),
     )
     if add_title:
         ax.set(
@@ -373,54 +391,16 @@ def create_PCA_figure(
     if loading:
         loading_plotter(ax, pca_object, loading_labels)
 
-    return img
-
-
-def pca_processor(df, scaler="MinMax"):
-    """pca_processor.
-
-    Parameters
-    ----------
-    df :
-        DataFrame for which the Principal Component analysis will be performed
-    scaler :
-        string/None to indicate the preprocessing done on the DataFrame
-        (default: MinMax)
-    """
-    import pandas as pd
-    from sklearn import preprocessing
-    from sklearn.decomposition import PCA  # Principal component analysis
-
-    # Drop rows that contain infinite or NaN data as PCA cannot process these
-    # datapoints
-    with pd.option_context("mode.use_inf_as_null", True):
-        df_pca = df.dropna(how="any")
-
-    # Perform preprocessing for PCA. Either MinMax or StandardScaler from the
-    # sklearn library
-    if scaler == "MinMax":
-        scaler = preprocessing.MinMaxScaler()
-        # Scale the data according to the selected scaler
-        df_pca_scaled = scaler.fit_transform(df_pca.values)
-    elif scaler == "Standard":
-        scaler = preprocessing.StandardScaler()
-        # Scale the data according to the selected scaler
-        df_pca_scaled = scaler.fit_transform(df_pca.values)
-    elif scaler is None:
-        df_pca_scaled = df_pca
-    else:
-        print("ERROR: No valid scaler selected. Chose: MinMax, or Standard")
-
-    # Perform the Principal Component Analysis
-    pca = PCA()
-    pca_results = pca.fit_transform(df_pca_scaled)
-
-    return pca, pca_results
+    return ax
 
 
 def loading_plotter(ax, pca_object, labels=None):
     import numpy as np
     import pandas as pd
+
+    ### DEZE WERKT NIET MEER ###
+    ### nog te fixen         ###
+    raise Exception("Function incomplete")
 
     # Make own labels if no names are given as input
     if labels is None:
@@ -438,11 +418,11 @@ def loading_plotter(ax, pca_object, labels=None):
     df_loading = df_loadings_all.sort_values(by="norm", ascending=False).iloc[
         :5
     ]
-    alpha = 0.3
 
     loading_coeff = df_loading[["x", "y"]].values
     labels = df_loading.index
     n = loading_coeff.shape[0]
+    alpha = 0.3
     for i in range(n):
         ax.arrow(
             0,
@@ -450,7 +430,7 @@ def loading_plotter(ax, pca_object, labels=None):
             loading_coeff[i, 0],
             loading_coeff[i, 1],
             color="r",
-            alpha=0.5,
+            alpha=alpha,
         )
         # these are matplotlib.patch.Patch properties
         props = dict(boxstyle="round", facecolor="wheat")
@@ -653,14 +633,34 @@ def create_widgets_interactive(df):
     xas_widget.observe(on_value_change_xas_widget, names="value")
     yas_widget.observe(on_value_change_yas_widget, names="value")
 
-    # Create the tabs to interact
+    # Create the tabs to filter
     # with the widgets
     sliderbox = [
         HBox(children=[Label(sliders[slider].description), sliders[slider]])
         for slider in sliders
     ]
 
-    tab2 = VBox(children=sliderbox)
+    # widgets for the PCA tab
+    #########################
+    plot_PCA_12_button = Button(
+        description="Plot PCA 1-2",
+    )
+    plot_PCA_23_button = Button(
+        description="Plot PCA 2-3",
+    )
+
+    # Create all widgets for PCA column selection
+    pca_checkboxes = {}
+    for col in df.columns:
+        if not is_datetime(df[col]):
+            pca_checkboxes[col] = Checkbox(value=True, description=col)
+
+    # Create the checkbox widgets to select the columns for the PCA
+    pca_checkbox_widgets = [
+        pca_checkboxes[pca_checkbox] for pca_checkbox in pca_checkboxes
+    ]
+
+    # tab 1 creation
     tab1 = HBox(
         children=[
             VBox(children=[xas_widget, yas_widget, color_widget]),
@@ -675,16 +675,30 @@ def create_widgets_interactive(df):
         ]
     )
 
-    tab = Tab(children=[tab1, tab2])
+    # tab 2 creation
+    tab2 = VBox(children=sliderbox)
+
+    # tab 3 creation
+    pca_checkbox_widgets.append(
+        HBox(children=[plot_PCA_12_button, plot_PCA_23_button]),
+    )
+    tab3 = VBox(pca_checkbox_widgets)
+
+    # combining all tabs
+    tab = Tab(children=[tab1, tab2, tab3])
     tab.set_title(0, "plot")
     tab.set_title(1, "filtering")
+    tab.set_title(2, "PCA")
 
     return (
         sliders,
+        pca_checkboxes,
         xas_widget,
         yas_widget,
         color_widget,
         plot_button,
+        plot_PCA_12_button,
+        plot_PCA_23_button,
         save_button,
         figure_name,
         grid_button,
